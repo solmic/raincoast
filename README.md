@@ -25,15 +25,25 @@ Surveys are conducted annually across multiple habitat types including eelgrass 
 
 Raincoast_shinyapp/ 
 ├── data/ \# Raw data files 
+
 ├── R/ 
+
 │ ├── utils.R \# Shared helper functions 
+
 │ ├── mod_intro.R \# Welcome tab module 
+
 │ ├── mod_general_population.R \# General population tab module 
+
 │ ├── mod_salmon.R \# Salmon tab module 
+
 │ ├── mod_forage_fish.R \# Forage fish tab module 
+
 │ └── mod_water_properties.R \# Water properties tab module 
+
 ├── global.R \# Packages, data loading, and cleaning 
+
 ├── server.R \# Shiny server 
+
 └── ui.R \# Shiny UI
 
 ## Running the App
