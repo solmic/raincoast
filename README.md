@@ -17,33 +17,23 @@ Surveys are conducted annually across multiple habitat types including eelgrass 
 ## Data
 
 | File | Description |
-|-----------------------|-------------------------------------------------|
+|-----------------------|------------------------------------------------|
 | `data/FraserEstuaryFishData_2016_2025.xlsx` | Raw fish catch and water chemistry data |
 | `data/raincoast_sites.xlsx` | Monitoring site coordinates and metadata |
 
 ## Project Structure
 
-Raincoast_shinyapp/ 
-├── data/ \# Raw data files 
-
-├── R/ 
-
-│ ├── utils.R \# Shared helper functions 
-
-│ ├── mod_intro.R \# Welcome tab module 
-
-│ ├── mod_general_population.R \# General population tab module 
-
-│ ├── mod_salmon.R \# Salmon tab module 
-
-│ ├── mod_forage_fish.R \# Forage fish tab module 
-
-│ └── mod_water_properties.R \# Water properties tab module 
-
-├── global.R \# Packages, data loading, and cleaning 
-
-├── server.R \# Shiny server 
-
+Raincoast_shinyapp/
+├── data/ \# Raw data files
+├── R/
+│ ├── utils.R \# Shared helper functions
+│ ├── mod_intro.R \# Welcome tab module
+│ ├── mod_general_population.R \# General population tab module
+│ ├── mod_salmon.R \# Salmon tab module
+│ ├── mod_forage_fish.R \# Forage fish tab module
+│ └── mod_water_properties.R \# Water properties tab module
+├── global.R \# Packages, data loading, and cleaning
+├── server.R \# Shiny server
 └── ui.R \# Shiny UI
 
 ## Running the App
