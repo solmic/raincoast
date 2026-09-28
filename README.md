@@ -8,11 +8,11 @@ Surveys are conducted annually across multiple habitat types including eelgrass 
 
 ## Dashboard Tabs
 
--   **Welcome** — Dataset overview, summary statistics, and monitoring site map
--   **General Fish Population** — Trends across all fish functional groups and families
--   **Salmon** — Detailed analysis of salmon species including size and seasonal patterns
--   **Forage Fish** — Forage fish trends and co-occurrence analysis with salmon
--   **Water Properties** — Water chemistry trends across sites and years
+- **Welcome** — Dataset overview, summary statistics, and monitoring site map
+- **General Fish Population** — Trends across all fish functional groups and families
+- **Salmon** — Detailed analysis of salmon species including size and seasonal patterns
+- **Forage Fish** — Forage fish trends and co-occurrence analysis with salmon
+- **Water Properties** — Water chemistry trends across sites and years
 
 ## Data
 
