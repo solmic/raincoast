@@ -181,9 +181,9 @@ mod_intro_server <- function(id, fraser_data, sites_data) {
       
       map_sites <- sites_data %>%
         filter(!is.na(lat), !is.na(lon)) %>%
-        mutate(label = if_else(is.na(site), site_id, site))
+        unite("details", site_location, site_info, sep = "- ", na.rm = TRUE, remove = FALSE)
       
-      sites_unique <- unique(map_sites$label)
+      sites_unique <- unique(map_sites$site_id)
       clrs <- Polychrome::createPalette(
         max(length(sites_unique), 3),
         seedcolors = c("#A9A9A9", "#FF0000", "#0000FF")
@@ -196,17 +196,14 @@ mod_intro_server <- function(id, fraser_data, sites_data) {
         leaflet::addCircleMarkers(
           lng         = ~lon,
           lat         = ~lat,
-          color       = ~site_pal(label),
-          fillColor   = ~site_pal(label),
+          color       = ~site_pal(site_id),
+          fillColor   = ~site_pal(site_id),
           fillOpacity = 0.9,
           radius      = 5,
           weight      = 2,
           opacity     = 1,
-          label       = ~paste0(site_id, " \u2014 ", label),
-          popup       = ~paste0(
-            "<b>Site ID: </b>", site_id, "<br>",
-            "<b>Site: </b>", label
-          )
+          label       = ~site_id,
+          popup       = ~ifelse(details == "", site_id, paste0(site_id, ": ", details))
         ) %>%
         leaflet::fitBounds(
           lng1 = min(map_sites$lon) - 0.05,

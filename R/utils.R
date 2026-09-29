@@ -1,4 +1,8 @@
 #R/utils.R
+
+# Site locations used by all maps
+raincoast_sites <- readxl::read_excel("data/raincoast_sites.xlsx")
+
 drop_all <- function(x) setdiff(x, "All")
 
 update_choices <- function(session, id, vec, selected = "All") {

@@ -10,6 +10,6 @@ server <- function(input, output, session) {
   mod_intro_server("intro",               fraser_data, sites_clean)
   mod_general_population_server("general", fraser_data, sites_clean)
   mod_water_properties_server("water",     water_data)
-  mod_salmon_server("salmon",              salmon_data)
-  mod_forage_fish_server("forage_fish",    forage_data, salmon_data)
+  mod_salmon_server("salmon",              salmon_data, sites_clean)
+  mod_forage_fish_server("forage_fish",    forage_data, salmon_data, sites_clean)
 }

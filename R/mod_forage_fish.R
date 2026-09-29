@@ -56,7 +56,7 @@ mod_forage_fish_ui <- function(id) {
   )
 }
 
-mod_forage_fish_server <- function(id, forage_data, salmon_data) {
+mod_forage_fish_server <- function(id, forage_data, salmon_data, sites_data) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -203,6 +203,11 @@ mod_forage_fish_server <- function(id, forage_data, salmon_data) {
         group_by(year, month) %>%
         mutate(pct = n_records / sum(n_records)) %>%
         ungroup() %>%
+        # Species not shown as monthly panels
+        filter(!(input$view_by == "species" &
+                   tolower(group) %in% c("alewife", "american shad",
+                                         "forage fish", "longfin smelt",
+                                         "kelp perch", "perch"))) %>%
         mutate(month = factor(month, levels = month.name),
                year  = factor(year)) %>%
         ggplot(aes(month, pct, color = year, group = year)) +
@@ -224,9 +229,11 @@ mod_forage_fish_server <- function(id, forage_data, salmon_data) {
     
     output$forage_map <- renderLeaflet({
       dat <- filtered_dat()
-      req(nrow(dat) > 0, "lat" %in% names(dat), "lon" %in% names(dat))
+      req(nrow(dat) > 0)
       
       site_info <- dat %>%
+        select(-type) %>%
+        left_join(sites_data, by = "site_id") %>%
         filter(!is.na(lat), !is.na(lon)) %>%
         group_by(site_id, type, lat, lon) %>%
         summarise(

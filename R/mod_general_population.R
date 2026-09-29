@@ -2,7 +2,7 @@
 
 mod_general_population_ui <- function(id) {
   ns <- NS(id)
-
+  
   tagList(
     fluidRow(
       column(
@@ -29,11 +29,11 @@ mod_general_population_ui <- function(id) {
           )
         )
       ),
-
+      
       column(
         width = 9,
         h3("General Fish Population"),
-
+        
         bslib::layout_columns(
           bslib::value_box(
             title = "Total records",
@@ -57,7 +57,7 @@ mod_general_population_ui <- function(id) {
           ),
           col_widths = c(3, 3, 3, 3)
         ),
-
+        
         br(),
         plotOutput(ns("fg_time_plot"), height = "420px"),
         hr(),
@@ -74,18 +74,18 @@ mod_general_population_ui <- function(id) {
 
 mod_general_population_server <- function(id, fraser_data, sites_data) {
   moduleServer(id, function(input, output, session) {
-
+    
     palettes <- reactiveValues(fg = NULL, fam = NULL)
-
+    
     observe({
       dat <- fraser_data()
       req(dat)
-
+      
       update_choices(session, "type", dat$type)
-
+      
       fg_lvls  <- sort(unique(na.omit(dat$functional_group)))
       fam_lvls <- sort(unique(na.omit(dat$family)))
-
+      
       palettes$fg  <- paired_map(fg_lvls)
       clrs <- as.vector(Polychrome::createPalette(
         max(length(fam_lvls), 3),
@@ -93,16 +93,16 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
       ))
       palettes$fam <- setNames(clrs, fam_lvls)
     })
-
+    
     output$kpi_group_label <- renderUI({
       if (input$view_by == "family") "Families present" else "Functional groups present"
     })
-
+    
     output$group_filter_ui <- renderUI({
       ns <- session$ns
       dat <- fraser_data()
       req(dat)
-
+      
       if (input$view_by == "functional_group") {
         fg_choices <- c("All", sort(unique(na.omit(dat$functional_group))))
         selectizeInput(
@@ -123,39 +123,39 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
         )
       }
     })
-
+    
     filtered_dat <- reactive({
       dat <- fraser_data()
       req(dat)
-
+      
       dat <- dat %>%
         filter(!is.na(year),
                year >= input$year_range[1],
                year <= input$year_range[2])
-
+      
       if (!is.null(input$type) && input$type != "All")
         dat <- dat %>% filter(type == input$type)
-
+      
       fg_keep  <- drop_all(input$functional_group %||% "All")
       fam_keep <- drop_all(input$family %||% "All")
-
+      
       if (length(fg_keep)  > 0) dat <- dat %>% filter(functional_group %in% fg_keep)
       if (length(fam_keep) > 0) dat <- dat %>% filter(family %in% fam_keep)
-
+      
       dat %>%
         mutate(group = .data[[input$view_by]]) %>%
         filter(!is.na(group), group != "")
     })
-
+    
     output$kpi_total_records <- renderText({ format(nrow(filtered_dat()), big.mark = ",") })
     output$kpi_n_species     <- renderText({ n_distinct(filtered_dat()$species, na.rm = TRUE) })
     output$kpi_n_groups      <- renderText({ n_distinct(filtered_dat()$group,   na.rm = TRUE) })
     output$kpi_n_years       <- renderText({ n_distinct(filtered_dat()$year,    na.rm = TRUE) })
-
+    
     counts_year_group <- reactive({
       ts <- filtered_dat() %>%
         count(year, group, name = "n_records")
-
+      
       if (isTRUE(input$complete_years)) {
         ts <- ts %>%
           complete(
@@ -164,17 +164,17 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
             fill = list(n_records = 0)
           )
       }
-
+      
       ts %>%
         group_by(year) %>%
         mutate(pct = n_records / sum(n_records)) %>%
         ungroup()
     })
-
+    
     output$fg_time_plot <- renderPlot({
       ts <- counts_year_group()
       req(nrow(ts) > 0, !is.null(palettes$fg), !is.null(palettes$fam))
-
+      
       p <- ggplot(ts, aes(year, pct, fill = group, group = group)) +
         geom_area() +
         scale_x_continuous(breaks = seq(input$year_range[1], input$year_range[2])) +
@@ -186,7 +186,7 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
           fill  = ifelse(input$view_by == "family", "Family", "Functional group")
         ) +
         theme_minimal()
-
+      
       if (input$view_by == "functional_group") {
         p <- p + scale_fill_manual(values = palettes$fg, drop = FALSE)
       } else {
@@ -194,12 +194,13 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
       }
       p
     })
-
+    
     output$general_map <- renderLeaflet({
       dat <- filtered_dat()
       req(nrow(dat) > 0)
-
+      
       site_info <- dat %>%
+        select(-type) %>%
         left_join(sites_data, by = "site_id") %>%
         filter(!is.na(lat), !is.na(lon)) %>%
         group_by(site_id, type, lat, lon) %>%
@@ -209,11 +210,11 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
           n_species    = n_distinct(species),
           .groups      = "drop"
         )
-
+      
       req(nrow(site_info) > 0)
-
+      
       type_pal <- colorFactor(palette = "Set2", domain = site_info$type)
-
+      
       leaflet(site_info) %>%
         addTiles() %>%
         addCircleMarkers(
@@ -239,11 +240,11 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
           title    = "Habitat"
         )
     })
-
+    
     output$species_tbl <- DT::renderDT({
       dat <- filtered_dat()
       req(dat)
-
+      
       dat %>%
         filter(!is.na(species), species != "",
                !is.na(sci_name), sci_name != "") %>%
@@ -262,6 +263,6 @@ mod_general_population_server <- function(id, fraser_data, sites_data) {
           options  = list(pageLength = 10, lengthMenu = c(10, 25, 50, 100), scrollX = TRUE)
         )
     })
-
+    
   })
 }

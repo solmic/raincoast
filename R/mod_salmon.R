@@ -57,7 +57,7 @@ mod_salmon_ui <- function(id) {
   )
 }
 
-mod_salmon_server <- function(id, salmon_data) {
+mod_salmon_server <- function(id, salmon_data, sites_data) {
   moduleServer(id, function(input, output, session) {
     
     ns <- session$ns
@@ -245,9 +245,11 @@ mod_salmon_server <- function(id, salmon_data) {
     
     output$salmon_map <- renderLeaflet({
       dat <- filtered_dat()
-      req(nrow(dat) > 0, "lat" %in% names(dat), "lon" %in% names(dat))
+      req(nrow(dat) > 0)
       
       site_info <- dat %>%
+        select(-type) %>%
+        left_join(sites_data, by = "site_id") %>%
         filter(!is.na(lat), !is.na(lon)) %>%
         group_by(site_id, site, type, lat, lon) %>%
         summarise(
