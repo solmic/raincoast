@@ -26,11 +26,43 @@ source(here("R", "mod_water_properties.R"))
 
 
 # Load raw data
-raw_fish  <- read_excel(here("data", "FraserEstuaryFishData_2016_2025.xlsx"),
-                        sheet = "FraserEstuaryFishData_2016_2025")
+# Reading the large fish Excel file uses too much memory on shinyapps.io,
+# so the app loads saved .rds copies of the fish and water sheets.
+# When the app is run in RStudio, the copies are rebuilt automatically
+# whenever the Excel file has changed. Run the app once in RStudio
+# after editing the spreadsheet, then publish.
+fish_xlsx <- here("data", "FraserEstuaryFishData_2016_2025.xlsx")
+fish_rds  <- here("data", "raw_fish.rds")
+water_rds <- here("data", "raw_water.rds")
 
-raw_water <- read_excel(here("data", "FraserEstuaryFishData_2016_2025.xlsx"),
-                        sheet = "Water Chemistry")
+if (interactive() && file.exists(fish_xlsx)) {
+  needs_rebuild <- !file.exists(fish_rds) || !file.exists(water_rds) ||
+    file.mtime(fish_xlsx) > file.mtime(fish_rds) ||
+    is.null(attr(readRDS(fish_rds), "updated"))
+  
+  if (needs_rebuild) {
+    message("Fish spreadsheet has changed: rebuilding data/raw_fish.rds and data/raw_water.rds ...")
+    fish_sheet  <- read_excel(fish_xlsx, sheet = "FraserEstuaryFishData_2016_2025")
+    water_sheet <- read_excel(fish_xlsx, sheet = "Water Chemistry")
+    attr(fish_sheet, "updated") <- file.mtime(fish_xlsx)
+    saveRDS(fish_sheet,  fish_rds)
+    saveRDS(water_sheet, water_rds)
+    rm(fish_sheet, water_sheet)
+    gc()
+  }
+}
+
+if (!file.exists(fish_rds) || !file.exists(water_rds)) {
+  stop("data/raw_fish.rds or data/raw_water.rds is missing. ",
+       "Run the app once in RStudio to create them, then publish again.")
+}
+
+raw_fish  <- readRDS(fish_rds)
+raw_water <- readRDS(water_rds)
+
+# Date the fish spreadsheet was last saved (shown on the intro page)
+data_updated <- attr(raw_fish, "updated")
+data_updated <- if (is.null(data_updated)) "unknown" else format(data_updated, "%B %d, %Y")
 
 raw_sites   <- read_excel(here("data", "raincoast_sites.xlsx"), sheet = "raincoast_sites")
 raw_renames <- read_excel(here("data", "raincoast_sites.xlsx"), sheet = "renames")

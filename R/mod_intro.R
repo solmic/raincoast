@@ -15,7 +15,9 @@ mod_intro_ui <- function(id) {
           h1("Fraser River Fish Monitoring Dataset",
              style = "font-size: 2.5em; font-weight: 700; color: #1e3a5f;"),
           p("A long-term monitoring dataset of fish populations in the Fraser River estuary",
-            style = "font-size: 1.2em; color: #6b7280;")
+            style = "font-size: 1.2em; color: #6b7280;"),
+          p(paste("Data last updated:", data_updated),
+            style = "font-size: 0.95em; color: #9ca3af;")
         ),
         
         hr(),
