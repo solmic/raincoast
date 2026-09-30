@@ -194,7 +194,7 @@ mod_intro_server <- function(id, fraser_data, sites_data) {
       site_pal <- leaflet::colorFactor(palette = clrs, domain = sites_unique)
       
       leaflet::leaflet(map_sites) %>%
-        leaflet::addProviderTiles(leaflet::providers$CartoDB.Positron) %>%
+        leaflet::addTiles() %>%
         leaflet::addCircleMarkers(
           lng         = ~lon,
           lat         = ~lat,

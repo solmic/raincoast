@@ -36,17 +36,26 @@ fish_rds  <- here("data", "raw_fish.rds")
 water_rds <- here("data", "raw_water.rds")
 
 if (interactive() && file.exists(fish_xlsx)) {
-  needs_rebuild <- !file.exists(fish_rds) || !file.exists(water_rds) ||
+  # A missing or damaged copy reads as NULL and triggers a rebuild
+  fish_copy  <- tryCatch(readRDS(fish_rds),  error = function(e) NULL)
+  water_copy <- tryCatch(readRDS(water_rds), error = function(e) NULL)
+  
+  needs_rebuild <- is.null(fish_copy) || is.null(water_copy) ||
     file.mtime(fish_xlsx) > file.mtime(fish_rds) ||
-    is.null(attr(readRDS(fish_rds), "updated"))
+    is.null(attr(fish_copy, "updated"))
+  rm(fish_copy, water_copy)
   
   if (needs_rebuild) {
     message("Fish spreadsheet has changed: rebuilding data/raw_fish.rds and data/raw_water.rds ...")
     fish_sheet  <- read_excel(fish_xlsx, sheet = "FraserEstuaryFishData_2016_2025")
     water_sheet <- read_excel(fish_xlsx, sheet = "Water Chemistry")
     attr(fish_sheet, "updated") <- file.mtime(fish_xlsx)
-    saveRDS(fish_sheet,  fish_rds)
-    saveRDS(water_sheet, water_rds)
+    # Write to a temporary file first, so an interrupted save can't leave a damaged copy
+    saveRDS(fish_sheet,  paste0(fish_rds,  ".tmp"))
+    saveRDS(water_sheet, paste0(water_rds, ".tmp"))
+    file.rename(paste0(fish_rds,  ".tmp"), fish_rds)
+    file.rename(paste0(water_rds, ".tmp"), water_rds)
+    message("Done: saved ", nrow(fish_sheet), " fish rows and ", nrow(water_sheet), " water rows.")
     rm(fish_sheet, water_sheet)
     gc()
   }
